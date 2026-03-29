@@ -24,10 +24,13 @@ flowchart LR
     SB[(Supabase)]
     API[Webhook_and_AI_API]
     Mobile[Expo_mobile_app]
+    Lexis[Lexis_web_dashboard]
   end
   R4 <-->|IoT_Cloud| AC
   R4 -->|optional_HTTP| API
   Mobile --> SB
+  Lexis --> SB
+  Lexis --> API
   API --> SB
   AC -.->|optional_bridge| API
 ```
@@ -39,7 +42,8 @@ flowchart LR
 | [firmware/r4-station](firmware/r4-station) | UNO R4 WiFi sketch: sensors, irrigation state machine, Arduino Cloud properties, optional OLED |
 | [supabase/migrations](supabase/migrations) | Postgres schema, RLS, crop templates, calendar fields, firmware version tracking |
 | [services/api](services/api) | Next.js API: Arduino telemetry webhook, AI health check (decision-support) |
-| [apps/mobile](apps/mobile) | Expo app: stations, plant profiles, daily photos, timeline, calendar |
+| [apps/mobile](apps/mobile) | Expo app: stations, plant profiles, daily photos, timeline, calendar (phone vs tablet layouts) |
+| [apps/lexis-dashboard](apps/lexis-dashboard) | **Lexis** — Next.js dashboard (globe, tables, Supabase auth); deploy as a **second Vercel project** |
 | [docs](docs) | Pilot runbook, telemetry bridge, pilot checklist, gimbal add-on spec |
 
 ## Quick start
@@ -48,7 +52,25 @@ flowchart LR
 2. **Backend:** Create a Supabase project and run migrations in `supabase/migrations/` (includes Storage bucket `plant-photos` and policies).
 3. **API:** Copy `services/api/.env.example` to `services/api/.env.local` and set `SUPABASE_*`, `TELEMETRY_SECRET`, optional `OPENAI_API_KEY`. For production, deploy **`services/api`** to Vercel from GitHub (root directory `services/api`); see [services/api/README.md](services/api/README.md#deploy-on-vercel-from-github).
 4. **Mobile:** Copy `apps/mobile/.env.example` to `apps/mobile/.env` (Supabase URL + anon key + `EXPO_PUBLIC_API_URL` for AI).
-5. **Optional bridge:** [docs/TELEMETRY_BRIDGE.md](docs/TELEMETRY_BRIDGE.md) — copy Cloud telemetry into `sensor_snapshots`.
+5. **Lexis dashboard:** Copy [apps/lexis-dashboard/.env.example](apps/lexis-dashboard/.env.example) to `apps/lexis-dashboard/.env.local`. Deploy **`apps/lexis-dashboard`** as a **separate Vercel project** (root directory `apps/lexis-dashboard`). Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and optionally `NEXT_PUBLIC_NELEXIS_API_URL` (your deployed Nelexis API origin) for JWT calls from the browser.
+6. **Optional bridge:** [docs/TELEMETRY_BRIDGE.md](docs/TELEMETRY_BRIDGE.md) — copy Cloud telemetry into `sensor_snapshots`.
+
+### Surfaces (product)
+
+| Surface | Where | Role |
+|--------|--------|------|
+| **Phone** | Expo app | Photo-first field use, tabs, quick entry |
+| **Tablet / foldable** | Same Expo app | Wider management layouts (e.g. plants master–detail, two-column calendar, grid stations) |
+| **Lexis (PC)** | `apps/lexis-dashboard` | Operations dashboard: globe with optional pins, illustrative sun line, **Open-Meteo** cloud cover (no API key; respect [Open-Meteo terms](https://open-meteo.com/en/terms) and avoid abusive request rates), tables for plants, stations, telemetry, care tasks |
+
+### Weather on Lexis (Open-Meteo)
+
+The dashboard calls the public **Open-Meteo** forecast API for **current cloud cover** only (approximate, for situational awareness — not a substitute for on-site sensors). **No API key** is required on the free open-meteo.com endpoint. Do not hammer the service: cache or debounce if you extend usage; follow their attribution and terms.
+
+### Vercel projects
+
+1. **Nelexis API** — root directory `services/api` (telemetry webhook, AI, cron).  
+2. **Lexis** — root directory `apps/lexis-dashboard` (authenticated dashboard; same Supabase user pool as mobile).
 
 ## Phases (implementation status)
 

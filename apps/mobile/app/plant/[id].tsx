@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -20,6 +20,7 @@ import {
   requestPlantHealth,
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useDeviceClass } from "@/hooks/useDeviceClass";
 
 const stages = [
   "seedling",
@@ -33,8 +34,10 @@ const stages = [
 const lightLevels = ["full_sun", "partial", "low", "corner_dark"] as const;
 
 export default function PlantDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, camera } = useLocalSearchParams<{ id: string; camera?: string }>();
   const { user, session } = useAuth();
+  const isTablet = useDeviceClass() === "tablet";
+  const didAutoCamera = useRef(false);
   const [loading, setLoading] = useState(true);
   const [nickname, setNickname] = useState("");
   const [stage, setStage] = useState<string>("seedling");
@@ -123,42 +126,7 @@ export default function PlantDetailScreen() {
     setLoading(false);
   }, [id, user]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function saveProfile() {
-    if (!id) return;
-    const { error } = await supabase
-      .from("plants")
-      .update({
-        stage,
-        target_market_date: targetMarket.trim() || null,
-        light_exposure: lightExposure,
-        substrate_type: substrate.trim() || null,
-        nutrient_regimen_note: regimenNote.trim() || null,
-      })
-      .eq("id", id);
-    if (error) Alert.alert("Save failed", error.message);
-    else Alert.alert("Saved", "Profile updated.");
-  }
-
-  async function addEvent() {
-    if (!id || !user || !eventNote.trim()) return;
-    const { error } = await supabase.from("plant_events").insert({
-      plant_id: id,
-      user_id: user.id,
-      event_type: "note",
-      body: eventNote.trim(),
-    });
-    if (error) Alert.alert("Event failed", error.message);
-    else {
-      setEventNote("");
-      load();
-    }
-  }
-
-  async function uploadPhoto() {
+  const uploadPhoto = useCallback(async () => {
     if (!id || !user) return;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
@@ -201,8 +169,54 @@ export default function PlantDetailScreen() {
         /* streak optional */
       }
     }
-    load();
+    await load();
     return row?.id as string | undefined;
+  }, [id, user, session?.access_token, load]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    didAutoCamera.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (camera !== "1" || !id || !user || didAutoCamera.current) return;
+    didAutoCamera.current = true;
+    router.replace(`/plant/${id}`);
+    void uploadPhoto();
+  }, [camera, id, user, uploadPhoto]);
+
+  async function saveProfile() {
+    if (!id) return;
+    const { error } = await supabase
+      .from("plants")
+      .update({
+        stage,
+        target_market_date: targetMarket.trim() || null,
+        light_exposure: lightExposure,
+        substrate_type: substrate.trim() || null,
+        nutrient_regimen_note: regimenNote.trim() || null,
+      })
+      .eq("id", id);
+    if (error) Alert.alert("Save failed", error.message);
+    else Alert.alert("Saved", "Profile updated.");
+  }
+
+  async function addEvent() {
+    if (!id || !user || !eventNote.trim()) return;
+    const { error } = await supabase.from("plant_events").insert({
+      plant_id: id,
+      user_id: user.id,
+      event_type: "note",
+      body: eventNote.trim(),
+    });
+    if (error) Alert.alert("Event failed", error.message);
+    else {
+      setEventNote("");
+      load();
+    }
   }
 
   async function runCareGenerate() {
@@ -259,7 +273,9 @@ export default function PlantDetailScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scroll}>
+    <ScrollView
+      contentContainerStyle={[styles.scroll, isTablet && styles.scrollTablet]}
+    >
       <Text style={styles.title}>{nickname}</Text>
       <Button title="Back to plants" onPress={() => router.back()} />
 
@@ -395,6 +411,12 @@ export default function PlantDetailScreen() {
 
 const styles = StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48, gap: 8 },
+  scrollTablet: {
+    maxWidth: 880,
+    width: "100%",
+    alignSelf: "center",
+    paddingHorizontal: 24,
+  },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   title: { fontSize: 22, fontWeight: "700", marginBottom: 8 },
   section: { marginTop: 16, fontWeight: "700", color: "#0d2818" },

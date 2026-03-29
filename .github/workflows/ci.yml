@@ -45,6 +45,26 @@ jobs:
       - name: Lint
         run: npm run lint
 
+  lexis-dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/lexis-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/lexis-dashboard/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+        run: npm run build
+
   firmware:
     runs-on: ubuntu-latest
     steps:

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useDeviceClass } from "@/hooks/useDeviceClass";
 import {
   completeCareTask,
   fetchCareTasks,
@@ -25,6 +26,7 @@ type MarketRow = {
 
 export default function CalendarScreen() {
   const { user, session } = useAuth();
+  const isTablet = useDeviceClass() === "tablet";
   const [marketRows, setMarketRows] = useState<MarketRow[]>([]);
   const [tasks, setTasks] = useState<CareTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,52 @@ export default function CalendarScreen() {
     );
   }
 
+  const tasksList = (
+    <FlatList
+      data={tasks}
+      keyExtractor={(t) => t.id}
+      style={isTablet ? styles.tabletColList : { maxHeight: 320 }}
+      ListEmptyComponent={<Text style={styles.empty}>No tasks in this window.</Text>}
+      renderItem={({ item }) => (
+        <View style={styles.taskCard}>
+          <Text style={styles.taskTitle}>{item.title}</Text>
+          <Text style={styles.meta}>
+            {item.task_type} · {item.source} · due {item.due_at.slice(0, 10)}
+          </Text>
+          {item.completed_at ? (
+            <Text style={styles.done}>Done</Text>
+          ) : (
+            <Button
+              title={busyId === item.id ? "…" : "Mark done"}
+              onPress={() => void markDone(item)}
+              disabled={busyId === item.id}
+            />
+          )}
+        </View>
+      )}
+    />
+  );
+
+  const marketList = (
+    <FlatList
+      data={marketRows}
+      keyExtractor={(r) => r.id}
+      style={isTablet ? styles.tabletColList : undefined}
+      ListEmptyComponent={<Text style={styles.empty}>No plants.</Text>}
+      renderItem={({ item }) => (
+        <View style={styles.card}>
+          <Text style={styles.title}>{item.nickname}</Text>
+          <Text style={styles.line}>
+            Target market: {item.target_market_date ?? "— (edit plant)"}
+          </Text>
+          <Text style={styles.line}>
+            Suggested start-by: {item.suggested_start ?? "—"}
+          </Text>
+        </View>
+      )}
+    />
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>AI &amp; rule-based care</Text>
@@ -116,54 +164,34 @@ export default function CalendarScreen() {
       </Text>
       <Button title="Refresh" onPress={() => void load()} />
 
-      <Text style={styles.subheading}>Care tasks</Text>
-      <FlatList
-        data={tasks}
-        keyExtractor={(t) => t.id}
-        style={{ maxHeight: 320 }}
-        ListEmptyComponent={<Text style={styles.empty}>No tasks in this window.</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.taskCard}>
-            <Text style={styles.taskTitle}>{item.title}</Text>
-            <Text style={styles.meta}>
-              {item.task_type} · {item.source} · due {item.due_at.slice(0, 10)}
-            </Text>
-            {item.completed_at ? (
-              <Text style={styles.done}>Done</Text>
-            ) : (
-              <Button
-                title={busyId === item.id ? "…" : "Mark done"}
-                onPress={() => void markDone(item)}
-                disabled={busyId === item.id}
-              />
-            )}
+      {isTablet ? (
+        <View style={styles.tabletRow}>
+          <View style={styles.tabletCol}>
+            <Text style={styles.subheading}>Care tasks</Text>
+            {tasksList}
           </View>
-        )}
-      />
-
-      <Text style={styles.subheading}>Market calendar</Text>
-      <FlatList
-        data={marketRows}
-        keyExtractor={(r) => r.id}
-        ListEmptyComponent={<Text style={styles.empty}>No plants.</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.title}>{item.nickname}</Text>
-            <Text style={styles.line}>
-              Target market: {item.target_market_date ?? "— (edit plant)"}
-            </Text>
-            <Text style={styles.line}>
-              Suggested start-by: {item.suggested_start ?? "—"}
-            </Text>
+          <View style={styles.tabletCol}>
+            <Text style={styles.subheading}>Market calendar</Text>
+            {marketList}
           </View>
-        )}
-      />
+        </View>
+      ) : (
+        <>
+          <Text style={styles.subheading}>Care tasks</Text>
+          {tasksList}
+          <Text style={styles.subheading}>Market calendar</Text>
+          {marketList}
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
+  tabletRow: { flex: 1, flexDirection: "row", gap: 12, marginTop: 8 },
+  tabletCol: { flex: 1, minWidth: 0 },
+  tabletColList: { flex: 1 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   heading: { fontSize: 20, fontWeight: "700", color: "#0d2818" },
   subheading: { marginTop: 16, fontWeight: "700", fontSize: 16 },

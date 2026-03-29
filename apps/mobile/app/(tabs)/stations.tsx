@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useDeviceClass } from "@/hooks/useDeviceClass";
 
 type Station = {
   id: string;
@@ -20,6 +21,7 @@ type Station = {
 
 export default function StationsScreen() {
   const { user } = useAuth();
+  const isTablet = useDeviceClass() === "tablet";
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
@@ -75,9 +77,11 @@ export default function StationsScreen() {
       <FlatList
         data={stations}
         keyExtractor={(s) => s.id}
+        numColumns={isTablet ? 2 : 1}
+        columnWrapperStyle={isTablet ? styles.columnWrap : undefined}
         ListEmptyComponent={<Text style={styles.empty}>No stations.</Text>}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <View style={[styles.card, isTablet && styles.cardGrid]}>
             <Text style={styles.title}>{item.name}</Text>
             <Text style={styles.meta}>Thing: {item.arduino_thing_id ?? "—"}</Text>
           </View>
@@ -117,12 +121,14 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   hint: { color: "#444", marginBottom: 8 },
   empty: { textAlign: "center", marginTop: 24, color: "#666" },
+  columnWrap: { gap: 10, marginBottom: 10 },
   card: {
     padding: 14,
     borderRadius: 12,
     backgroundColor: "#eef2ee",
     marginBottom: 10,
   },
+  cardGrid: { flex: 1, marginBottom: 0, minWidth: 0 },
   title: { fontSize: 17, fontWeight: "600" },
   meta: { color: "#555", marginTop: 4 },
   backdrop: {
