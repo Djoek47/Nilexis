@@ -43,7 +43,7 @@ This matches the usual flow: **push code to GitHub**, then let Vercel build from
 
 ### `POST /api/telemetry`
 
-Authenticates with `Authorization: Bearer <TELEMETRY_SECRET>`.
+Authenticates with **one of**: `Authorization: Bearer <TELEMETRY_SECRET>`, header `x-telemetry-secret: <TELEMETRY_SECRET>`, or query `?telemetry_secret=<TELEMETRY_SECRET>` (last resort for webhooks that cannot set headers).
 
 JSON body (fields optional except `arduino_thing_id`):
 

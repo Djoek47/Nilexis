@@ -6,9 +6,17 @@ The firmware publishes to **Arduino IoT Cloud**. To duplicate telemetry into **S
 
 `POST https://your-api-host/api/telemetry`
 
-**Arduino IoT Cloud → Webhooks:** use this same URL. The dashboard often **validates** the URL with **GET** or **HEAD** first; this API responds with **200** (no secret) so the URL is accepted. **Delivery** of variable data must still use **POST** with **`Authorization: Bearer <TELEMETRY_SECRET>`** if your webhook UI supports custom headers — match [`services/api/.env.example`](../services/api/.env.example). If Arduino only sends a plain POST without your header, either configure headers in the webhook template or use an intermediate relay.
+**Arduino IoT Cloud → Webhooks:** Arduino’s own rules may still reject some URLs (see [Arduino Cloud webhooks](https://docs.arduino.cc/arduino-cloud/features/webhooks/)). This API answers **GET**/**HEAD** with **200** so validators that probe the URL can succeed when Arduino accepts the host. If the Cloud UI never accepts your Nelexis URL, use a **bridge** below instead of fighting the form.
 
-Headers:
+**POST authentication** (use one):
+
+1. **`Authorization: Bearer <TELEMETRY_SECRET>`** (preferred)
+2. **`x-telemetry-secret: <TELEMETRY_SECRET>`** (if your relay can set a custom header but not `Authorization`)
+3. **Query string** (only when the webhook UI cannot set any header):  
+   `POST https://your-api-host/api/telemetry?telemetry_secret=<TELEMETRY_SECRET>`  
+   Treat this like a password in the URL: it can appear in logs and proxies; **rotate `TELEMETRY_SECRET`** if it leaks.
+
+Headers (typical):
 
 ```http
 Authorization: Bearer <TELEMETRY_SECRET>

@@ -87,7 +87,9 @@ export default function Home() {
         <ul style={ul}>
           <li>
             <code style={mono}>POST /api/telemetry</code> —{" "}
-            <code style={mono}>Authorization: Bearer &lt;TELEMETRY_SECRET&gt;</code>
+            <code style={mono}>Bearer</code>,{" "}
+            <code style={mono}>x-telemetry-secret</code>, or{" "}
+            <code style={mono}>?telemetry_secret=</code>
           </li>
         </ul>
       </section>

@@ -3,16 +3,20 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 /**
  * Ingest station telemetry (Arduino Cloud bridge or device HTTP).
- * Auth: Authorization: Bearer TELEMETRY_SECRET
  *
  * GET/HEAD: no auth — used by Arduino IoT Cloud (and others) to validate the webhook URL
  * before save; real ingestion is POST only.
+ *
+ * POST auth (any one): Authorization: Bearer <TELEMETRY_SECRET>, or header
+ * x-telemetry-secret: <TELEMETRY_SECRET>, or query ?telemetry_secret=<TELEMETRY_SECRET>
+ * (query is for webhook UIs that cannot set headers — prefer Bearer; rotate secret if URL leaks).
  */
 export function GET() {
   return NextResponse.json(
     {
       ok: true,
-      message: "Nelexis telemetry endpoint — use POST with JSON and Authorization: Bearer TELEMETRY_SECRET",
+      message:
+        "Nelexis telemetry — POST JSON here. Auth: Bearer TELEMETRY_SECRET, or x-telemetry-secret header, or ?telemetry_secret= (POST only).",
     },
     { status: 200 }
   );
@@ -22,11 +26,21 @@ export function HEAD() {
   return new NextResponse(null, { status: 200 });
 }
 
+function telemetryAuthOk(req: NextRequest, secret: string | undefined): boolean {
+  if (!secret) return false;
+  const auth = req.headers.get("authorization");
+  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (bearer === secret) return true;
+  const headerSecret = req.headers.get("x-telemetry-secret");
+  if (headerSecret === secret) return true;
+  const querySecret = req.nextUrl.searchParams.get("telemetry_secret");
+  if (querySecret === secret) return true;
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.TELEMETRY_SECRET;
-  const auth = req.headers.get("authorization");
-  const token = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
-  if (!secret || token !== secret) {
+  if (!telemetryAuthOk(req, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
