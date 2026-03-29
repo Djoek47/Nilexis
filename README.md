@@ -1,5 +1,7 @@
 # Nelexis (Nilexis)
 
+**Source repository:** [github.com/Djoek47/Nilexis](https://github.com/Djoek47/Nilexis)
+
 **Nelexis** is a hydroponic monitoring and irrigation platform. This repository uses the folder name **Nilexis**; the product name is **Nelexis**—use either consistently in docs and UI as you prefer.
 
 ## System map
