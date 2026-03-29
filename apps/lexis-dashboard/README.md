@@ -1,3 +1,22 @@
+# Lexis (Nelexis operator dashboard)
+
+Next.js app: sign-in, tables, globe. Deploy from monorepo with Vercel **Root Directory** `apps/lexis-dashboard`.
+
+### Vercel environment variables (required)
+
+Add to **this** project (not the API project):
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Optional: `NEXT_PUBLIC_NELEXIS_API_URL` (deployed Nelexis API origin).
+
+If those two `NEXT_PUBLIC_*` variables are missing, middleware used to return **500 / `MIDDLEWARE_INVOCATION_FAILED`** (Supabase client throws when URL or key is empty). Redeploy after saving env vars.
+
+Copy [.env.example](./.env.example) → `.env.local` for local dev.
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
