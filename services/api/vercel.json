@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/telemetry/",
+      "destination": "/api/telemetry"
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/sensor-eval",

@@ -26,6 +26,11 @@ export function HEAD() {
   return new NextResponse(null, { status: 200 });
 }
 
+/** Some webhook UIs probe with OPTIONS; must not 405 or the URL is rejected. */
+export function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
+}
+
 function telemetryAuthOk(req: NextRequest, secret: string | undefined): boolean {
   if (!secret) return false;
   const auth = req.headers.get("authorization");

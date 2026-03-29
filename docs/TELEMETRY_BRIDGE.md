@@ -6,6 +6,12 @@ The firmware publishes to **Arduino IoT Cloud**. To duplicate telemetry into **S
 
 `POST https://your-api-host/api/telemetry`
 
+### If Arduino says “Enter a valid webhook URL”
+
+1. Use **exactly** `https://<your-host>/api/telemetry` — **https**, no spaces, **no trailing slash** (a trailing slash used to yield **308** on Vercel; the API project rewrites `/api/telemetry/` → `/api/telemetry` so probes get **200**).
+2. **Do not** put `?telemetry_secret=…` in the URL **while testing** the form if the field rejects query strings; add the secret in the URL only if Arduino accepts it and cannot send headers.
+3. Arduino Cloud may **only accept certain partner-style URLs** in the UI. If it never accepts your host, point the Thing webhook at **IFTTT / Make / Zapier** and have that service **POST** to Nelexis with `Authorization: Bearer …` and JSON including `arduino_thing_id`.
+
 **Arduino IoT Cloud → Webhooks:** Arduino’s own rules may still reject some URLs (see [Arduino Cloud webhooks](https://docs.arduino.cc/arduino-cloud/features/webhooks/)). This API answers **GET**/**HEAD** with **200** so validators that probe the URL can succeed when Arduino accepts the host. If the Cloud UI never accepts your Nelexis URL, use a **bridge** below instead of fighting the form.
 
 **POST authentication** (use one):
