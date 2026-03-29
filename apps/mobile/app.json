@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Nelexis",
+    "slug": "nelexis",
+    "scheme": "nelexis",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0d2818"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nelexis.app"
+    },
+    "android": {
+      "package": "com.nelexis.app"
+    },
+    "plugins": ["expo-router", "expo-notifications"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,32 @@
+# Secrets
+**/arduino_secrets.h
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Dependencies
+node_modules/
+.pnp.*
+
+# Build / OS
+dist/
+build/
+.next/
+out/
+*.log
+.DS_Store
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/dist/
+
+# Arduino
+firmware/**/build/
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Supabase local (optional)
+.supabase/
