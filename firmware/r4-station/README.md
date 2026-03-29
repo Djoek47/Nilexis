@@ -33,7 +33,7 @@ Arduino **UNO R4 WiFi** sketch: environment reads, **irrigation state machine**,
 #define SECRET_DEVICE_KEY "YOUR_SECRET_KEY"
 ```
 
-4. Copy `arduino_secrets.h.example` to `arduino_secrets.h` and add WiFi credentials if your connection flow requires them in code (Cloud often provisions WiFi via `ArduinoIoTPreferredConnection`).
+4. Copy `arduino_secrets.h.example` to `arduino_secrets.h`. **`SECRET_WIFI_SSID` / `SECRET_WIFI_PASS`** are required in the sketch: `thingProperties.h` builds a `WiFiConnectionHandler` for `ArduinoCloud.begin(...)`. For provisioning-only setups, you can still set placeholder strings for compile, then use Arduino Cloud / NetworkConfigurator as documented by Arduino.
 
 5. Open `r4-station.ino`, select board **Arduino UNO R4 WiFi**, compile and upload.
 

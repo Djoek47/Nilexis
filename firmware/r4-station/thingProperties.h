@@ -5,7 +5,11 @@
  */
 
 #include <ArduinoIoTCloud.h>
+#include <WiFiConnectionHandler.h>
 #include "arduino_secrets.h"
+
+/** Required for ArduinoCloud.begin(ArduinoIoTPreferredConnection) on UNO R4 WiFi. */
+WiFiConnectionHandler ArduinoIoTPreferredConnection(SECRET_WIFI_SSID, SECRET_WIFI_PASS);
 
 float ph_sensor;
 float ec_ms;

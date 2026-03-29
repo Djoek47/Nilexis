@@ -4,7 +4,6 @@
  */
 
 #include <ArduinoIoTCloud.h>
-#include <WiFiS3.h>
 
 #include "config.h"
 #include "thingProperties.h"
