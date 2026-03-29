@@ -12,7 +12,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: "system-ui", padding: 24 }}>{children}</body>
+      <body
+        style={{
+          fontFamily:
+            "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
+          margin: 0,
+          minHeight: "100vh",
+          background: "#fafafa",
+        }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
