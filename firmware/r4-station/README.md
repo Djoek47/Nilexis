@@ -35,7 +35,7 @@ Arduino **UNO R4 WiFi** sketch: environment reads, **irrigation state machine**,
 
 4. Copy `arduino_secrets.h.example` to `arduino_secrets.h` and add WiFi credentials if your connection flow requires them in code (Cloud often provisions WiFi via `ArduinoIoTPreferredConnection`).
 
-5. Open `R4_Station.ino`, select board **Arduino UNO R4 WiFi**, compile and upload.
+5. Open `r4-station.ino`, select board **Arduino UNO R4 WiFi**, compile and upload.
 
 ## Dashboards and alarms
 

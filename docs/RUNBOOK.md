@@ -13,7 +13,7 @@ Operational checklist for **1–5** Arduino UNO R4 WiFi grow stations.
 1. Flash firmware from [`firmware/r4-station`](../firmware/r4-station/README.md).
 2. Pair **Arduino IoT Cloud** Thing; confirm variables match `thingProperties.h`.
 3. **Calibrate** pH and EC probes per manufacturer (two-point pH, EC standard solution).
-4. **Map analog scaling** in `readSensors()` in `R4_Station.ino` to match your modules (replace placeholder mapping).
+4. **Map analog scaling** in `readSensors()` in `r4-station.ino` to match your modules (replace placeholder mapping).
 5. Set **EC/pH targets** for your crop in Cloud automations or adjust `TARGET_EC_*` in `config.h` for local FSM.
 
 ## Normal operation
