@@ -134,7 +134,7 @@ export default function PlantDetailScreen() {
       return;
     }
     const pick = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 0.75,
     });
     if (pick.canceled || !pick.assets[0]) return;

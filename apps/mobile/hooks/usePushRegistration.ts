@@ -23,29 +23,37 @@ export function usePushRegistration(accessToken: string | null | undefined) {
     let cancelled = false;
 
     (async () => {
-      const { status: existing } = await Notifications.getPermissionsAsync();
-      let final = existing;
-      if (existing !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        final = status;
-      }
-      if (final !== "granted" || cancelled) return;
-
-      const projectId =
-        Constants.expoConfig?.extra?.eas?.projectId ??
-        (Constants as { easConfig?: { projectId?: string } }).easConfig?.projectId;
-
-      const tokenRes = await Notifications.getExpoPushTokenAsync(
-        projectId ? { projectId } : undefined
-      );
-      const token = tokenRes.data;
-      if (!token || cancelled) return;
-
       try {
+        const { status: existing } = await Notifications.getPermissionsAsync();
+        let final = existing;
+        if (existing !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          final = status;
+        }
+        if (final !== "granted" || cancelled) return;
+
+        const projectId =
+          Constants.expoConfig?.extra?.eas?.projectId ??
+          (Constants as { easConfig?: { projectId?: string } }).easConfig
+            ?.projectId;
+
+        if (!projectId) {
+          console.warn(
+            "[push] Skipped: no EAS projectId. Run `eas init` in apps/mobile (adds expo.extra.eas.projectId) to enable Expo push tokens in dev builds / Expo Go."
+          );
+          return;
+        }
+
+        const tokenRes = await Notifications.getExpoPushTokenAsync({
+          projectId,
+        });
+        const token = tokenRes.data;
+        if (!token || cancelled) return;
+
         await registerPushToken(accessToken, token, Device.osName ?? undefined);
         registered.current = true;
       } catch (e) {
-        console.warn("Push register failed", e);
+        console.warn("Push registration failed", e);
       }
     })();
 

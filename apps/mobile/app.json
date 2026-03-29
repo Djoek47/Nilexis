@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Nelexis",
-    "slug": "nelexis",
+    "slug": "nilexis",
     "scheme": "nelexis",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -12,7 +12,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nelexis.app"
+      "bundleIdentifier": "com.nelexis.app",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "package": "com.nelexis.app"
@@ -24,6 +29,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "334078aa-067b-4161-bec5-24e01c3ef2cb"
+      }
+    },
+    "owner": "djoek47"
   }
 }

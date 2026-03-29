@@ -4,7 +4,24 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 /**
  * Ingest station telemetry (Arduino Cloud bridge or device HTTP).
  * Auth: Authorization: Bearer TELEMETRY_SECRET
+ *
+ * GET/HEAD: no auth — used by Arduino IoT Cloud (and others) to validate the webhook URL
+ * before save; real ingestion is POST only.
  */
+export function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      message: "Nelexis telemetry endpoint — use POST with JSON and Authorization: Bearer TELEMETRY_SECRET",
+    },
+    { status: 200 }
+  );
+}
+
+export function HEAD() {
+  return new NextResponse(null, { status: 200 });
+}
+
 export async function POST(req: NextRequest) {
   const secret = process.env.TELEMETRY_SECRET;
   const auth = req.headers.get("authorization");

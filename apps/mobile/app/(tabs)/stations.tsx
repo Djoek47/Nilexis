@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { supabase } from "@/lib/supabase";
@@ -25,6 +26,7 @@ export default function StationsScreen() {
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [thingId, setThingId] = useState("");
 
@@ -43,20 +45,54 @@ export default function StationsScreen() {
     load();
   }, [load]);
 
-  async function createStation() {
-    if (!user || !name.trim()) return;
-    const { error } = await supabase.from("stations").insert({
-      user_id: user.id,
-      name: name.trim(),
-      arduino_thing_id: thingId.trim() || null,
-    });
-    if (error) {
-      console.error(error);
-      return;
-    }
-    setModal(false);
+  function openAddModal() {
+    setEditingId(null);
     setName("");
     setThingId("");
+    setModal(true);
+  }
+
+  function openEditModal(s: Station) {
+    setEditingId(s.id);
+    setName(s.name);
+    setThingId(s.arduino_thing_id ?? "");
+    setModal(true);
+  }
+
+  function closeModal() {
+    setModal(false);
+    setEditingId(null);
+    setName("");
+    setThingId("");
+  }
+
+  async function saveStation() {
+    if (!user || !name.trim()) return;
+    const tid = thingId.trim() || null;
+
+    if (editingId) {
+      const { error } = await supabase
+        .from("stations")
+        .update({ name: name.trim(), arduino_thing_id: tid })
+        .eq("id", editingId)
+        .eq("user_id", user.id);
+      if (error) {
+        console.error(error);
+        return;
+      }
+    } else {
+      const { error } = await supabase.from("stations").insert({
+        user_id: user.id,
+        name: name.trim(),
+        arduino_thing_id: tid,
+      });
+      if (error) {
+        console.error(error);
+        return;
+      }
+    }
+
+    closeModal();
     load();
   }
 
@@ -71,8 +107,13 @@ export default function StationsScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.hint}>
-        Set <Text style={{ fontWeight: "700" }}>arduino_thing_id</Text> to match Arduino IoT Cloud
-        so <Text style={{ fontWeight: "700" }}>/api/telemetry</Text> can attach readings.
+        In{" "}
+        <Text style={{ fontWeight: "700" }}>Arduino IoT Cloud</Text> (cloud.arduino.cc), open your
+        Thing and copy its <Text style={{ fontWeight: "700" }}>Thing ID</Text> (UUID). Paste it
+        below for each station — it must match the{" "}
+        <Text style={{ fontWeight: "700" }}>arduino_thing_id</Text> field in{" "}
+        <Text style={{ fontWeight: "700" }}>POST /api/telemetry</Text> so readings map to this
+        station in Supabase.
       </Text>
       <FlatList
         data={stations}
@@ -81,20 +122,33 @@ export default function StationsScreen() {
         columnWrapperStyle={isTablet ? styles.columnWrap : undefined}
         ListEmptyComponent={<Text style={styles.empty}>No stations.</Text>}
         renderItem={({ item }) => (
-          <View style={[styles.card, isTablet && styles.cardGrid]}>
+          <TouchableOpacity
+            style={[styles.card, isTablet && styles.cardGrid]}
+            onPress={() => openEditModal(item)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.title}>{item.name}</Text>
-            <Text style={styles.meta}>Thing: {item.arduino_thing_id ?? "—"}</Text>
-          </View>
+            <Text style={styles.meta}>
+              Thing ID: {item.arduino_thing_id ?? "— (tap to set)"}
+            </Text>
+            <Text style={styles.tapHint}>Tap to edit name or Thing ID</Text>
+          </TouchableOpacity>
         )}
       />
-      <Button title="Add station" onPress={() => setModal(true)} />
+      <Button title="Add station" onPress={openAddModal} />
       <Modal visible={modal} animationType="slide" transparent>
         <View style={styles.backdrop}>
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>New station</Text>
+            <Text style={styles.sheetTitle}>
+              {editingId ? "Edit station" : "New station"}
+            </Text>
+            <Text style={styles.sheetHint}>
+              Thing ID = Arduino IoT Cloud Thing UUID (same value the telemetry bridge sends as
+              arduino_thing_id).
+            </Text>
             <TextInput
               style={styles.input}
-              placeholder="Name"
+              placeholder="Station name"
               value={name}
               onChangeText={setName}
             />
@@ -102,12 +156,13 @@ export default function StationsScreen() {
               style={styles.input}
               placeholder="Arduino Cloud Thing ID (UUID)"
               autoCapitalize="none"
+              autoCorrect={false}
               value={thingId}
               onChangeText={setThingId}
             />
             <View style={styles.row}>
-              <Button title="Cancel" onPress={() => setModal(false)} />
-              <Button title="Save" onPress={createStation} />
+              <Button title="Cancel" onPress={closeModal} />
+              <Button title="Save" onPress={() => void saveStation()} />
             </View>
           </View>
         </View>
@@ -131,6 +186,8 @@ const styles = StyleSheet.create({
   cardGrid: { flex: 1, marginBottom: 0, minWidth: 0 },
   title: { fontSize: 17, fontWeight: "600" },
   meta: { color: "#555", marginTop: 4 },
+  tapHint: { fontSize: 12, color: "#888", marginTop: 8 },
+  sheetHint: { fontSize: 13, color: "#666", marginBottom: 4 },
   backdrop: {
     flex: 1,
     backgroundColor: "#0006",

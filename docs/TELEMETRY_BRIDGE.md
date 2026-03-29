@@ -6,6 +6,8 @@ The firmware publishes to **Arduino IoT Cloud**. To duplicate telemetry into **S
 
 `POST https://your-api-host/api/telemetry`
 
+**Arduino IoT Cloud → Webhooks:** use this same URL. The dashboard often **validates** the URL with **GET** or **HEAD** first; this API responds with **200** (no secret) so the URL is accepted. **Delivery** of variable data must still use **POST** with **`Authorization: Bearer <TELEMETRY_SECRET>`** if your webhook UI supports custom headers — match [`services/api/.env.example`](../services/api/.env.example). If Arduino only sends a plain POST without your header, either configure headers in the webhook template or use an intermediate relay.
+
 Headers:
 
 ```http
